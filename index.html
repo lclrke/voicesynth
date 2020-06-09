@@ -1,0 +1,649 @@
+
+<html>
+
+<head>
+  <meta charset="UTF-8">
+
+  <title>Pitch Detect Piano</title>
+<script src="https://unpkg.com/ml5@0.4.3/dist/ml5.min.js"></script>
+<script src="https://unpkg.com/tone@13.8.25/build/Tone.js"></script>
+</head>
+
+<body>
+  <h1>Pitch Detect Synth</h1>
+  <canvas width="640" height="480" id="myCanvas"></canvas>
+  <p id='status'>Loading Model...</p>
+  <p></p>
+  <button onclick="setup();Dbass();">Start</button>
+
+  <script>
+
+  // Pitch variables
+  let pitch;
+  let audioContext;
+  let audioStream;
+
+  // Keyboard variables
+  const cornerCoords = [10, 40];
+  const rectWidth = 90;
+  const rectHeight = 300;
+  const keyRatio = 0.58;
+  const scale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+  let currentNote = '';
+
+  let canvas, ctx;
+
+  let width = 640;
+  let height = 480;
+
+  // taken from p5.Sound
+  function freqToMidi(f) {
+    var mathlog2 = Math.log(f / 440) / Math.log(2);
+    var m = Math.round(12 * mathlog2) + 69;
+    return m;
+  };
+
+
+
+
+  function map(n, start1, stop1, start2, stop2) {
+    var newval = (n - start1) / (stop1 - start1) * (stop2 - start2) + start2;
+    return newval;
+  };
+
+  async function setup() {
+    canvas = document.querySelector('#myCanvas');
+    ctx = canvas.getContext('2d');
+
+    audioContext = new AudioContext();
+    stream = await navigator.mediaDevices.getUserMedia({
+      audio: true,
+      video: false
+    });
+    startPitch(stream, audioContext);
+
+    requestAnimationFrame(draw);
+  }
+
+
+const { pitchDetection } = ml5;
+var modelp = 'https://raw.githubusercontent.com/lclrke/pitchsynth/master/';
+
+function startPitch(stream, audioContext) {
+ pitch = ml5.pitchDetection(modelp, audioContext , stream, modelLoaded);
+}
+
+
+  function modelLoaded() {
+    document.querySelector('#status').textContent = 'Model Loaded';
+    getPitch();
+  }
+
+  function getPitch() {
+    pitch.getPitch(function(err, frequency) {
+      if (frequency) {
+        let midiNum = freqToMidi(frequency);
+        currentNote = scale[midiNum % 12];
+      }
+      getPitch();
+
+    })
+
+
+
+
+    if (currentNote == 'D') {
+      Dbass(); melancholyarp();DmChord();
+ctx.fillText('Dminor', 10, 50);
+      };
+
+
+      if (currentNote == 'E') {
+
+        hopearp(); EmChord(); Ebass();
+ctx.fillText('Eminor', 10, 50);
+        };
+
+
+      if (currentNote == 'A') {
+        seriousarp();  AmChord(); Abass();
+ctx.fillText('Aminor', 10, 50);
+      };
+
+      if (currentNote == 'G') {
+        sunnyarp(); GChord();    Gbass();
+ctx.fillText('Gmajor', 10, 50);
+        };
+
+      if (currentNote == 'F') {
+        calmarp(); FChord(); Fbass();
+ctx.fillText('Fmajor', 10, 50);
+
+        };
+
+
+        if (currentNote == 'C') {
+        happyarp(); CChord(); Cbass();
+    ctx.fillText('Cmajor', 10, 50);
+
+          };
+
+
+
+
+
+
+
+
+
+
+  }
+
+  function draw() {
+    requestAnimationFrame(draw);
+    drawKeyboard();
+  }
+
+  function drawKeyboard() {
+    let whiteKeyCounter = 0;
+
+    ctx.beginPath();
+    ctx.rect(0,0, width, height);
+    ctx.fillStyle = "white";
+    ctx.fill();
+
+    // background(255);
+    // strokeWeight(2);
+    // stroke(50);
+
+
+    // White keys
+    for (let i = 0; i < scale.length; i++) {
+      if (scale[i].indexOf('#') == -1) {
+
+
+        ctx.beginPath();
+        ctx.rect(cornerCoords[0] + (whiteKeyCounter * rectWidth), cornerCoords[1], rectWidth, rectHeight);
+        if (scale[i] == currentNote) {
+          ctx.fillStyle = "rgb(50, 50, 50)";
+
+        } else {
+          ctx.fillStyle = "rgb(250, 250, 250)";
+        }
+        ctx.fill();
+
+        whiteKeyCounter++;
+      }
+    }
+    whiteKeyCounter = 0;
+
+    // Black keys
+    for (let i = 0; i < scale.length; i++) {
+      if (scale[i].indexOf('#') > -1) {
+
+        ctx.beginPath();
+        ctx.rect(cornerCoords[0] + (whiteKeyCounter * rectWidth) - (rectWidth / 3), cornerCoords[1], rectWidth * keyRatio, rectHeight * keyRatio);
+        if (scale[i] == currentNote) {
+          ctx.fillStyle = "rgb(100, 100, 100)";
+        } else {
+          ctx.fillStyle = "rgb(0, 0, 0)";
+        }
+        ctx.fill();
+      } else {
+        whiteKeyCounter++;
+      }
+    }
+  }
+
+
+
+Tone.Transport.bpm.value = 120;
+
+
+  var arpseq;
+
+
+
+
+  /////BASS
+  var bassvol = new Tone.Volume(-4);
+  var bassdist = new Tone.Distortion(100);
+  var bassdist2 = new Tone.Distortion(.1);
+  var bassfilter = new Tone.Filter(250, "lowpass")
+
+  var bass = new Tone.MonoSynth({
+    oscillator : {
+      type : "square"
+   },
+
+   filter : {
+   Q : 4 ,
+   type : "lowpass",
+   rolloff : -24
+   } ,
+
+   envelope : {
+     attack : 0.09 ,
+    decay : 0.1 ,
+    sustain : 0.1 ,
+    release : .001
+  },
+  filterEnvelope : {
+  attack : .001 ,
+  decay : 0.002 ,
+  sustain : 0.1 ,
+  release : 0.05 ,
+  baseFrequency : 100 ,
+  octaves : 6 ,
+  exponent : 2
+  }
+
+  }).chain( bassdist, bassfilter,bassdist2,bassvol,  Tone.Master);
+
+
+  function Dbass(){
+        bass.triggerAttackRelease("d1", "2n");
+      };
+
+  function Gbass(){
+            bass.triggerAttackRelease("g1", "2n");
+          };
+
+
+  function Ebass(){
+                bass.triggerAttackRelease("e1", "2n");
+              };
+
+  function Fbass(){
+    bass.triggerAttackRelease("F1", "2n");
+    };
+
+
+  function Abass(){
+      bass.triggerAttackRelease("a1", "2n");
+      };
+
+      function Cbass(){
+          bass.triggerAttackRelease("C1", "2n");
+          };
+
+
+
+
+  ///POLY SYNTH EFFECTS
+
+  ///const distortion = new Tone.Distortion(0.4).toMaster();
+  var freeverb = new Tone.Freeverb(0.2,3000);
+  var polyfilter = new Tone.Filter(500, "lowpass")
+  var vol1 = new Tone.Volume(-15);
+  var polyPong = new Tone.PingPongDelay("64n", 0.1)
+  polyPong.wet.value = 0.5;
+
+  var polySynth = new Tone.PolySynth(6, Tone.Synth, {
+    oscillator : {
+      type : "sawtooth"
+    }
+  }).chain(vol1, polyfilter,polyPong, freeverb, Tone.Master);
+
+
+  ///POLYSYNTH CHORDS
+
+  function DmChord(){
+                  polySynth.triggerAttackRelease(['D2','D3','F4', 'A4','C4'],"2n");
+              }
+
+  function GChord(){
+                      polySynth.triggerAttackRelease(['G1','G2','G3','B4', 'D4', 'G4'],"2n");
+                  }
+
+  function EmChord(){
+            polySynth.triggerAttackRelease(['E2', 'G4','E4','C4',],"2n");
+                                }
+
+  function FChord(){
+      polySynth.triggerAttackRelease(['F1','F2','F3','A3', 'C4', 'A4'],"2n");
+                                                }
+
+
+  function AmChord(){
+  polySynth.triggerAttackRelease(['A1','A2', 'C4', 'E4','A4'],"2n");
+    }
+
+  function CChord(){
+      //polySynth.triggerAttack(['C2','C3', 'E4', 'G4', 'B4'], "", 0.2);
+      polySynth.triggerAttackRelease(['C2','C3', 'E4', 'G4', 'C4'], "2n");
+        }
+
+  ///ARP EFFECTS
+
+  var vol2 = new Tone.Volume(-15);
+  var fbDelay = new Tone.FeedbackDelay("16n", 0.1);
+  fbDelay.wet.value = 0.1;
+
+  var arpverb = new Tone.Freeverb(0.4,3000);
+  arpverb.wet.value = .5;
+  var arpPong = new Tone.PingPongDelay("32n", 0.1)
+  arpPong.wet.value = 0.8;
+
+  const arpsynth = new Tone.MonoSynth({
+    "oscillator" : {
+      "type" : "sawtooth"
+   },
+
+   filter : {
+   Q : 2 ,
+   type : "lowpass",
+   rolloff : -12
+   } ,
+
+   envelope : {
+     attack : 0.0009 ,
+    decay : 0.4 ,
+    sustain : 0.5 ,
+    release : .000009
+  },
+  filterEnvelope : {
+  attack : 1 ,
+  decay : 0.002 ,
+  sustain : 0.9 ,
+  release : 0.5 ,
+  baseFrequency : 200 ,
+  octaves : 8 ,
+  exponent : 2
+  }
+
+  }).chain(vol2, fbDelay,arpPong, arpverb,Tone.Master);
+
+
+  function melancholyarp(){
+    Tone.Transport.stop();
+     Tone.Transport.cancel();
+
+    const notes2 = [
+    null,
+      "A3",
+      "C4",
+      "E4",
+      "F4",
+      "C4",
+      "A3",
+    null,
+    null,
+      "C4",
+      "E4",
+      "C4",
+      "F4",
+      "E4",
+        "C5",
+      null,
+
+    ];
+      const arpseq = new Tone.Sequence(
+        function(time, note) {
+          arpsynth.triggerAttackRelease(note, '.065', time);
+        },
+        notes2,
+        "32n"
+      );
+    // Setup the synth to be ready to play on beat 1
+    arpseq.loop = 8;
+  arpseq.start();
+  arpseq.stop("2n");
+
+  Tone.Transport.start();
+
+  }
+
+  function sunnyarp(){
+    Tone.Transport.stop();
+     Tone.Transport.cancel();
+    const notes1 = [
+    null,
+      "G3",
+      "B3",
+      "D4",
+    "B3",
+      "D4",
+      "B4",
+    null,
+    null,
+    "B3",
+    "D4",
+  "B4",
+  "G4",
+  "B4",
+  "D4",
+
+    null,
+    ];
+    const notes2 = [
+    null,
+      "G3",
+      "B4",
+      "D4",
+      "G4",
+      "D4",
+      "B4",
+    null,
+    null,
+    "B4",
+    "D4",
+  "B4",
+  "G4",
+  "B4",
+  "D4",
+
+    null,
+    ];
+
+
+      const arpseq = new Tone.Sequence(
+        function(time, note) {
+          arpsynth.triggerAttackRelease(note, '.065', time);
+        },
+        notes1,
+        "32n"
+      );
+    // Setup the synth to be ready to play on beat 1
+    arpseq.loop = 8;
+  arpseq.start();
+  arpseq.stop("2n");
+
+  Tone.Transport.start();
+
+  }
+
+  function hopearp(){
+    Tone.Transport.stop();
+     Tone.Transport.cancel();
+    const notes1 = [
+    null,
+      "G3",
+      "C4",
+      "D4",
+      "G4",
+      "D4",
+      "B4",
+
+    null,
+    null,
+    "E3",
+    "G3",
+    "C4",
+    "E4",
+    "G4",
+      "C5",
+    null,
+    ];
+
+
+
+  const arpseq = new Tone.Sequence(
+        function(time, note) {
+          arpsynth.triggerAttackRelease(note, '.065', time);
+        },
+        notes1,
+        "32n"
+      );
+    // Setup the synth to be ready to play on beat 1
+  arpseq.loop = 8;
+  arpseq.start();
+  arpseq.stop("2n");
+
+  Tone.Transport.start();
+
+  }
+
+  function calmarp(){
+    Tone.Transport.stop();
+     Tone.Transport.cancel();
+    const notes1 = [
+    null,
+
+      "C4",
+      "E4",
+      "F4",
+          "G4",
+      "C4",
+      "A3",
+    null,
+    null,
+      "C4",
+      "E4",
+      "C4",
+      "F4",
+      "E4",
+        "G4",
+      null,
+
+    ];
+    const notes2 = [
+    null,
+      "A3",
+      "C4",
+      "E4",
+      "F4",
+      "C4",
+      "A3",
+    null,
+    null,
+      "C4",
+      "E4",
+      "C4",
+      "F4",
+      "E4",
+        "C5",
+      null,
+
+    ];
+
+
+
+  const arpseq = new Tone.Sequence(
+        function(time, note) {
+          arpsynth.triggerAttackRelease(note, '.065', time);
+        },
+        notes1,
+        "32n"
+      );
+    // Setup the synth to be ready to play on beat 1
+    arpseq.loop = 8;
+  arpseq.start();
+  arpseq.stop("2n");
+
+  Tone.Transport.start();
+
+  }
+
+  function seriousarp(){
+    Tone.Transport.cancel();
+    Tone.Transport.stop();
+
+    const notesx = [
+    null,
+    "A3",
+    "C4",
+  "E3",
+  "G3",
+      "G4",
+      "c4",
+
+    null,
+    null,
+    "A3",
+    "C3",
+  "E3",
+  "G4",
+      "A4",
+      "C4",
+    null,
+    ];
+
+
+  const arpseq = new Tone.Sequence(
+        function(time, note) {
+          arpsynth.triggerAttackRelease(note, '.065', time);
+        },
+        notesx,
+        "32n"
+      );
+    // Setup the synth to be ready to play on beat 1
+
+  arpseq.start();
+  arpseq.stop("2n");
+
+  Tone.Transport.start();
+
+  }
+
+  function happyarp(){
+
+    Tone.Transport.cancel();
+    Tone.Transport.stop();
+
+    const notesx = [
+    null,
+    "C3",
+  "E3",
+  "g3",
+  "B3",
+      "G4",
+      "C4",
+    null,
+    null,
+    "C3",
+    "E3",
+    "G3",
+      "G4",
+      "b3",
+    "e4",
+
+    null,
+    ];
+
+
+  const arpseq = new Tone.Sequence(
+
+        function(time, note) {
+          arpsynth.triggerAttackRelease(note, '.065', time);
+        },
+        notesx,
+        "32n"
+      );
+    // Setup the synth to be ready to play on beat 1
+
+  arpseq.start();
+
+  arpseq.stop("2n");
+
+  Tone.Transport.start();
+
+
+  }
+
+
+
+  </script>
+</body>
+
+</html>
